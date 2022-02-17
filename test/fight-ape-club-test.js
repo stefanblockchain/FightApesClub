@@ -220,7 +220,18 @@ describe("FightApesClub", function () {
     const balance = await fightApesClub.contractBalance();
     expect(balance).to.equal(0);
     await expect(fightApesClub.withdrawAll())
-      .to.be.revertedWith("No balance to withdraw.");;
+      .to.be.revertedWith("No balance to withdraw.");
 
+  });
+
+  it("Setting admin should pass", async function () {
+    const [owner, addr1] = await ethers.getSigners();
+    const FightApesClub = await ethers.getContractFactory("FightApesClub");
+    const fightApesClub = await FightApesClub.deploy();
+    await fightApesClub.deployed();
+
+    await fightApesClub.connect(owner).setAdmin(addr1.address);
+    const admin = await fightApesClub.admin();
+    expect(admin).to.equal(addr1.address);
   });
 });

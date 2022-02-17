@@ -1424,11 +1424,14 @@ contract FightApesClub is ERC721Enumerable, ReentrancyGuard, Ownable {
     uint256 public SALE_PRICE = 0.1 ether;
     uint256 public PRESALE_PRICE = 0.08 ether;
     uint256 public GEN_0 = 12000;
+    uint256 public MAX_SUPPLY = 10 ^ 5;
     uint256 public MAX_MINT_PER_TRANSACTION = 10;
     uint256 internal MINTED_AMOUNT = 0;
     MintStatus public MINT_STATUS = MintStatus.INACTIVE;
     address[] public whitelisted_users;
     mapping(address => bool) public whitelist_minted;
+
+    address public admin;
 
     string[] private acrobatics = [
         "1",
@@ -1756,6 +1759,28 @@ contract FightApesClub is ERC721Enumerable, ReentrancyGuard, Ownable {
 
     function setWhiteListedUsers(address[] memory _users) public onlyOwner {
         whitelisted_users = _users;
+    }
+
+    function setAdmin(address _admin) public onlyOwner {
+        require(_admin != address(0), "0 address not allowed for admin");
+        admin = _admin;
+    }
+
+    function mintAdmin(uint256 amount, address user) public {
+        require(msg.sender == admin, "Not an admin address");
+        require(MINT_STATUS == MintStatus.SOLD, "You can't mint in admin mode");
+        require(
+            amount > 0 && MINTED_AMOUNT + amount <= MAX_SUPPLY,
+            "MAX_SUPPLY limit"
+        );
+
+        uint256 _mintAmount = MINTED_AMOUNT;
+
+        for (uint256 i = MINTED_AMOUNT + 1; i <= MINTED_AMOUNT + amount; i++) {
+            _mintAmount = _mintAmount + 1;
+            _safeMint(user, _mintAmount);
+        }
+        MINTED_AMOUNT = _mintAmount;
     }
 
     function withdrawAll() public onlyOwner {
